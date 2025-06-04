@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Documentation Scraper Monitor</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #1a1a1a;
+            color: #ffffff;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 1rem 2rem;
+            text-align: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+        }
+
+        .header h1 {
+            font-size: 2rem;
+            font-weight: 300;
+        }
+
+        .header .subtitle {
+            opacity: 0.9;
+            margin-top: 0.5rem;
+        }
+
+        .container {
+            max-width: 100%;
+            margin: 0;
+            padding: 2rem;
+        }
+
+        .overview {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .card {
+            background: #2d2d2d;
+            border-radius: 8px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            border-left: 4px solid;
+        }
+
+        .card.total { border-left-color: #3498db; }
+        .card.active { border-left-color: #2ecc71; }
+        .card.completed { border-left-color: #f39c12; }
+        .card.error { border-left-color: #e74c3c; }
+
+        .card h3 {
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            opacity: 0.8;
+            margin-bottom: 0.5rem;
+        }
+
+        .card .value {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .card .detail {
+            font-size: 0.9rem;
+            opacity: 0.7;
+        }
+
+        .controls {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 300px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 0.75rem;
+            border: none;
+            border-radius: 4px;
+            background: #2d2d2d;
+            color: #ffffff;
+            font-size: 1rem;
+        }
+
+        .filter-buttons {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            background: #3d3d3d;
+            color: #ffffff;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+        }
+
+        .filter-btn:hover {
+            background: #4d4d4d;
+        }
+
+        .filter-btn.active {
+            background: #667eea;
+        }
+
+        .domains-table {
+            background: #2d2d2d;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+        }
+
+        .table-header {
+            background: #3d3d3d;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .table-header h2 {
+            font-size: 1.2rem;
+            font-weight: 500;
+        }
+
+        .refresh-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            border-radius: 4px;
+            background: #2ecc71;
+            color: white;
+            cursor: pointer;
+            transition: background 0.3s ease;
+        }
+
+        .refresh-btn:hover {
+            background: #27ae60;
+        }
+
+        .table-container {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: left;
+            border-bottom: 1px solid #3d3d3d;
+        }
+
+        th {
+            background: #3d3d3d;
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        tr:hover {
+            background: #3d3d3d;
+        }
+
+        .status {
+            padding: 0.25rem 0.75rem;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .status.active { background: #2ecc71; color: white; }
+        .status.to_be_started { background: #3498db; color: white; }
+        .status.reached_max { background: #f39c12; color: white; }
+        .status.gave_up { background: #e74c3c; color: white; }
+        .status.completed_global { background: #9b59b6; color: white; }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: #3d3d3d;
+            border-radius: 10px;
+            overflow: hidden;
+            margin: 0.5rem 0;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #2ecc71, #27ae60);
+            transition: width 0.3s ease;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 2rem;
+            opacity: 0.7;
+        }
+
+        .error-message {
+            color: #e74c3c;
+            font-size: 0.9rem;
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .domain-name {
+            font-family: monospace;
+            color: #64b5f6;
+        }
+
+        .auto-refresh {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .auto-refresh input[type="checkbox"] {
+            transform: scale(1.2);
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 1rem;
+            }
+            
+            .overview {
+                grid-template-columns: 1fr;
+            }
+            
+            .controls {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            .search-box {
+                min-width: auto;
+            }
+            
+            table {
+                font-size: 0.9rem;
+            }
+            
+            th, td {
+                padding: 0.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📊 Documentation Scraper Monitor</h1>
+        <div class="subtitle">Real-time monitoring dashboard</div>
+    </div>
+
+    <div class="container">
+        <div class="overview" id="overview">
+            <div class="card total">
+                <h3>Total Progress</h3>
+                <div class="value">-</div>
+                <div class="detail">Loading...</div>
+            </div>
+            <div class="card total">
+                <h3>Domains</h3>
+                <div class="value">-</div>
+                <div class="detail">Loading...</div>
+            </div>
+            <div class="card active">
+                <h3>Active</h3>
+                <div class="value">-</div>
+                <div class="detail">Loading...</div>
+            </div>
+            <div class="card completed">
+                <h3>Completed</h3>
+                <div class="value">-</div>
+                <div class="detail">Loading...</div>
+            </div>
+            <div class="card error">
+                <h3>Issues</h3>
+                <div class="value">-</div>
+                <div class="detail">Loading...</div>
+            </div>
+            <div class="card total">
+                <h3>Performance</h3>
+                <div class="value">-</div>
+                <div class="detail">Loading...</div>
+            </div>
+        </div>
+
+        <div class="controls">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search domains...">
+            </div>
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">All</button>
+                <button class="filter-btn" data-filter="ACTIVE">Active</button>
+                <button class="filter-btn" data-filter="TO_BE_STARTED">To Start</button>
+                <button class="filter-btn" data-filter="REACHED_MAX">Max Reached</button>
+                <button class="filter-btn" data-filter="GAVE_UP">Gave Up</button>
+                <button class="filter-btn" data-filter="COMPLETED_GLOBAL">Completed</button>
+            </div>
+            <div class="auto-refresh">
+                <input type="checkbox" id="autoRefresh" checked>
+                <label for="autoRefresh">Auto-refresh</label>
+            </div>
+        </div>
+
+        <div class="domains-table">
+            <div class="table-header">
+                <h2>Domain Status <span id="domainCount">(Loading...)</span></h2>
+                <button class="refresh-btn" onclick="loadData()">🔄 Refresh</button>
+            </div>
+            <div class="table-container">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Domain</th>
+                            <th>Status</th>
+                            <th>Pages</th>
+                            <th>Queue</th>
+                            <th>Errors</th>
+                            <th>Last Updated</th>
+                            <th>Last Error</th>
+                        </tr>
+                    </thead>
+                    <tbody id="domainsTable">
+                        <tr>
+                            <td colspan="7" class="loading">Loading domains...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allDomains = [];
+        let currentFilter = 'all';
+        let autoRefreshInterval;
+
+        function loadData(retryCount = 0) {
+            fetch('/api/status')
+                .then(response => response.json())
+                .then(data => {
+                    // Check if we have meaningful data
+                    if (data.overview.total_domains === 0 && retryCount < 3) {
+                        // Retry after a short delay if no data yet
+                        setTimeout(() => loadData(retryCount + 1), 1000);
+                        return;
+                    }
+                    updateOverview(data);
+                    allDomains = data.domains;
+                    filterAndDisplayDomains();
+                })
+                .catch(error => {
+                    console.error('Error loading data:', error);
+                    if (retryCount < 3) {
+                        // Retry on error
+                        setTimeout(() => loadData(retryCount + 1), 1000);
+                    } else {
+                        document.getElementById('domainsTable').innerHTML = 
+                            '<tr><td colspan="7" class="error-message">Error loading data. Please refresh.</td></tr>';
+                    }
+                });
+        }
+
+        function updateOverview(data) {
+            const overview = data.overview;
+            const status = data.status_counts;
+            const performance = data.performance;
+
+            const progressPercent = (overview.global_pages_fetched / overview.global_max_pages) * 100;
+
+            document.getElementById('overview').innerHTML = `
+                <div class="card total">
+                    <h3>Total Progress</h3>
+                    <div class="value">${overview.global_pages_fetched.toLocaleString()}</div>
+                    <div class="detail">of ${overview.global_max_pages.toLocaleString()} pages</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${progressPercent.toFixed(1)}%"></div>
+                    </div>
+                </div>
+                <div class="card total">
+                    <h3>Domains</h3>
+                    <div class="value">${overview.total_domains}</div>
+                    <div class="detail">total domains tracked</div>
+                </div>
+                <div class="card active">
+                    <h3>Active</h3>
+                    <div class="value">${status.ACTIVE || 0}</div>
+                    <div class="detail">currently crawling</div>
+                </div>
+                <div class="card completed">
+                    <h3>Completed</h3>
+                    <div class="value">${(status.REACHED_MAX || 0) + (status.COMPLETED_GLOBAL || 0)}</div>
+                    <div class="detail">finished domains</div>
+                </div>
+                <div class="card error">
+                    <h3>Issues</h3>
+                    <div class="value">${status.GAVE_UP || 0}</div>
+                    <div class="detail">gave up domains</div>
+                </div>
+                <div class="card total">
+                    <h3>Performance</h3>
+                    <div class="value">${performance.pages_per_second || 0}</div>
+                    <div class="detail">pages/second</div>
+                </div>
+            `;
+        }
+
+        function filterAndDisplayDomains() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            let filtered = allDomains.filter(domain => {
+                const matchesSearch = domain.name.toLowerCase().includes(searchTerm) ||
+                                    domain.original.toLowerCase().includes(searchTerm);
+                const matchesFilter = currentFilter === 'all' || domain.status === currentFilter;
+                return matchesSearch && matchesFilter;
+            });
+
+            document.getElementById('domainCount').textContent = `(${filtered.length} of ${allDomains.length})`;
+
+            const tbody = document.getElementById('domainsTable');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="loading">No domains match current filter</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(domain => `
+                <tr>
+                    <td class="domain-name">${domain.name}</td>
+                    <td><span class="status ${domain.status.toLowerCase().replace('_', '-')}">${domain.status.replace('_', ' ')}</span></td>
+                    <td><strong>${domain.pages_fetched}</strong></td>
+                    <td>${domain.queue_size}</td>
+                    <td>${domain.errors > 0 ? `<span style="color: #e74c3c">${domain.errors}</span>` : domain.errors}</td>
+                    <td>${domain.last_updated || 'Never'}</td>
+                    <td class="error-message">${domain.last_error || '-'}</td>
+                </tr>
+            `).join('');
+        }
+
+        // Event listeners
+        document.getElementById('searchInput').addEventListener('input', filterAndDisplayDomains);
+
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentFilter = btn.dataset.filter;
+                filterAndDisplayDomains();
+            });
+        });
+
+        document.getElementById('autoRefresh').addEventListener('change', (e) => {
+            if (e.target.checked) {
+                startAutoRefresh();
+            } else {
+                stopAutoRefresh();
+            }
+        });
+
+        function startAutoRefresh() {
+            if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+            autoRefreshInterval = setInterval(loadData, 30000); // Refresh every 30 seconds
+        }
+
+        function stopAutoRefresh() {
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+        }
+
+        // Initialize with a small delay to allow server to fully start
+        setTimeout(() => {
+            loadData();
+            startAutoRefresh();
+        }, 500);
+
+        // Handle page visibility for auto-refresh
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) {
+                stopAutoRefresh();
+            } else if (document.getElementById('autoRefresh').checked) {
+                startAutoRefresh();
+            }
+        });
+    </script>
+</body>
+</html>

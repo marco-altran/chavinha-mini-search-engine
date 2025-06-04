@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chavinha - Programming Documentation Search</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background-color: #f5f5f5;
+            color: #333;
+            line-height: 1.6;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            padding-top: 40px;
+        }
+        
+        .header h1 {
+            font-size: 2.5em;
+            color: #2c3e50;
+            margin-bottom: 10px;
+        }
+        
+        .header p {
+            color: #7f8c8d;
+            font-size: 1.1em;
+        }
+        
+        .search-box {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .search-form {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            font-size: 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 4px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+        
+        .search-input:focus {
+            border-color: #3498db;
+        }
+        
+        .search-button {
+            padding: 12px 24px;
+            background-color: #3498db;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .search-button:hover {
+            background-color: #2980b9;
+        }
+        
+        .search-options {
+            display: flex;
+            gap: 20px;
+            font-size: 14px;
+        }
+        
+        .search-options label {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            cursor: pointer;
+        }
+        
+        .results-info {
+            margin-bottom: 20px;
+            color: #7f8c8d;
+            font-size: 14px;
+        }
+        
+        .results-container {
+            display: none;
+        }
+        
+        .result-item {
+            background: white;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 15px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            transition: box-shadow 0.2s;
+        }
+        
+        .result-item:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .result-title {
+            font-size: 1.2em;
+            margin-bottom: 5px;
+        }
+        
+        .result-title a {
+            color: #2c3e50;
+            text-decoration: none;
+        }
+        
+        .result-title a:hover {
+            color: #3498db;
+            text-decoration: underline;
+        }
+        
+        .result-url {
+            color: #27ae60;
+            font-size: 14px;
+            margin-bottom: 8px;
+        }
+        
+        .result-url a {
+            color: #27ae60;
+            text-decoration: none;
+        }
+        
+        .result-url a:hover {
+            text-decoration: underline;
+        }
+        
+        .result-snippet {
+            color: #555;
+            font-size: 15px;
+            line-height: 1.5;
+        }
+        
+        .result-meta {
+            margin-top: 8px;
+            font-size: 13px;
+            color: #95a5a6;
+        }
+        
+        .result-meta span {
+            margin-right: 15px;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            display: none;
+        }
+        
+        .error {
+            background-color: #fee;
+            border: 1px solid #fcc;
+            color: #c33;
+            padding: 15px;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .nav-links {
+            text-align: center;
+            margin-top: 40px;
+        }
+        
+        .nav-links a {
+            color: #3498db;
+            text-decoration: none;
+            margin: 0 10px;
+        }
+        
+        .nav-links a:hover {
+            text-decoration: underline;
+        }
+        
+        .top-nav {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .top-nav a {
+            color: #3498db;
+            text-decoration: none;
+            margin: 0 10px;
+            font-size: 14px;
+        }
+        
+        .top-nav a:hover {
+            text-decoration: underline;
+        }
+        
+        .header h1 a {
+            color: #2c3e50;
+            text-decoration: none;
+        }
+        
+        .header h1 a:hover {
+            color: #3498db;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1><a href="/">📚 Chavinha</a></h1>
+            <p>Search through programming documentation</p>
+            <div class="top-nav">
+                <a href="/stats">View Statistics</a>
+                <a href="/docs">API Documentation</a>
+            </div>
+        </div>
+        
+        <div class="search-box">
+            <form class="search-form" id="searchForm">
+                <input 
+                    type="text" 
+                    class="search-input" 
+                    id="searchInput" 
+                    placeholder="Search for functions, classes, tutorials..."
+                    autofocus
+                >
+                <button type="submit" class="search-button">Search</button>
+            </form>
+            
+            <div class="search-options">
+                <label>
+                    <input type="radio" name="searchType" value="hybrid" checked>
+                    Hybrid (Recommended)
+                </label>
+                <label>
+                    <input type="radio" name="searchType" value="bm25">
+                    Keyword (BM25)
+                </label>
+                <label>
+                    <input type="radio" name="searchType" value="semantic">
+                    Semantic
+                </label>
+            </div>
+        </div>
+        
+        <div class="error" id="error"></div>
+        
+        <div class="loading" id="loading">
+            <p>Searching...</p>
+        </div>
+        
+        <div class="results-container" id="results">
+            <div class="results-info" id="resultsInfo"></div>
+            <div id="resultsList"></div>
+        </div>
+        
+        <div class="nav-links">
+            <a href="/stats">View Statistics</a>
+            <a href="/docs">API Documentation</a>
+        </div>
+    </div>
+    
+    <script>
+        const searchForm = document.getElementById('searchForm');
+        const searchInput = document.getElementById('searchInput');
+        const resultsContainer = document.getElementById('results');
+        const resultsList = document.getElementById('resultsList');
+        const resultsInfo = document.getElementById('resultsInfo');
+        const loading = document.getElementById('loading');
+        const errorDiv = document.getElementById('error');
+        
+        // Fire warmup query on page load
+        window.addEventListener('load', async () => {
+            try {
+                // Silent warmup query
+                const warmupQuery = 'warm+up';
+                const response = await fetch(`/api/search?q=${encodeURIComponent(warmupQuery)}&search_type=hybrid&limit=5`);
+                await response.json(); // Consume response
+                console.log('Warmup query completed');
+            } catch (error) {
+                console.error('Warmup query failed:', error);
+            }
+        });
+        
+        searchForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const query = searchInput.value.trim();
+            if (!query) return;
+            
+            const searchType = document.querySelector('input[name="searchType"]:checked').value;
+            
+            // Reset UI
+            errorDiv.style.display = 'none';
+            resultsContainer.style.display = 'none';
+            loading.style.display = 'block';
+            
+            try {
+                const response = await fetch(`/api/search?q=${encodeURIComponent(query)}&search_type=${searchType}`);
+                const data = await response.json();
+                
+                if (!response.ok) {
+                    throw new Error(data.detail || 'Search failed');
+                }
+                
+                displayResults(data);
+            } catch (error) {
+                errorDiv.textContent = `Error: ${error.message}`;
+                errorDiv.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+            }
+        });
+        
+        function displayResults(data) {
+            resultsInfo.textContent = `Found ${data.total_hits} results for "${data.query}" (${data.search_time_ms.toFixed(1)}ms) - ${data.search_type} search`;
+            
+            resultsList.innerHTML = '';
+            
+            if (data.results.length === 0) {
+                resultsList.innerHTML = '<p>No results found. Try a different query or search type.</p>';
+            } else {
+                data.results.forEach(result => {
+                    const resultDiv = document.createElement('div');
+                    resultDiv.className = 'result-item';
+                    resultDiv.innerHTML = `
+                        <h3 class="result-title">
+                            <a href="${result.url}" target="_blank">${escapeHtml(result.title)}</a>
+                        </h3>
+                        <div class="result-url"><a href="${result.url}" target="_blank">${result.url}</a></div>
+                        <div class="result-snippet">${escapeHtml(result.snippet)}</div>
+                        <div class="result-meta">
+                            <span>📁 ${result.domain}</span>
+                            <span>📄 ${result.doc_type}</span>
+                            <span>🎯 ${(result.relevance * 100).toFixed(1)}%</span>
+                        </div>
+                    `;
+                    resultsList.appendChild(resultDiv);
+                });
+            }
+            
+            resultsContainer.style.display = 'block';
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

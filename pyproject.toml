@@ -1,0 +1,56 @@
+[tool.poetry]
+name = "mini-search-engine"
+version = "0.1.0"
+description = "A hybrid search engine for programming documentation using BM25 and semantic search with Vespa"
+authors = ["Marco Altran"]
+readme = "README.md"
+license = "MIT"
+packages = [{include = "api"}, {include = "indexer"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+
+# API
+fastapi = "^0.104.1"
+uvicorn = {extras = ["standard"], version = "^0.24.0.post1"}
+pydantic = "^2.5.0"
+
+# Vespa client
+pyvespa = "^0.39.0"
+
+# Data processing
+beautifulsoup4 = "^4.12.2"
+lxml = "^4.9.3"
+html2text = "^2020.1.16"
+
+# Utilities
+python-dotenv = "^1.0.0"
+requests = "^2.31.0"
+aiofiles = "^23.2.1"
+rich = "^13.7.0"
+flask = "^3.0.0"
+
+# Semantic search0"
+numpy = "^1.24.0"
+onnxruntime = "^1.16.0"
+optimum = {extras = ["onnxruntime"], version = "^1.25.3"}
+transformers = "^4.35.0"
+sentence-transformers = "^2.2.2"
+
+# Language detection
+langdetect = "^1.0.9"
+
+aiohttp = {extras = ["speedups"], version = "^3.12.8"}
+aiodns = "^3.2.0"
+h2 = "^4.1.0"
+
+[tool.poetry.group.dev.dependencies]
+ipython = "^8.17.2"
+pytest = "^7.4.3"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.poetry.scripts]
+api = "api.main:main"

@@ -1,0 +1,206 @@
+# Mini Search Engine
+
+Welcome to your test project!
+
+Your task is to build a mini search engine specifically designed for searching programming documentation using existing technologies.
+
+## Crawler
+
+Select an existing crawler implementation and justify your choice.
+
+_Note:_ Crawler should stay within the provided subdomain/domain/path restrictions. No more than 10,000 pages should be indexed from any single domain. You can choose which pages to index. Javascript rendering is not needed. Proxy use is not needed (but describe how would you employ such strategy).
+
+## Index
+
+Choose between Tantivy or Vespa for indexing, and explain your decision.
+
+The maximum allowable search latency is 50ms.
+
+## Interface
+
+*   Provide a simple interface for your search engine: an input box for the query and a display of the 10 most relevant search results. Each result should include the title, link, and a relevant snippet from the page. Display the query latency above the results.
+*   Include a basic page to show the number of indexed pages per domain, along with any other useful statistics you'd like to present.
+
+## Documentation
+
+*   Include detailed instructions for installation and deployment.
+*   Describe the challenges you encountered during crawling, indexing, and ranking, as well as the solutions you implemented.
+*   Explain how you optimized ranking to achieve high relevancy in the search results.
+
+## Deliverables
+
+*   A GitHub repository containing the project and accompanying documentation.
+*   A live deployment of the search engine for testing. Prioritize both search relevancy and latency.
+
+Good luck!
+
+## Domains
+
+Your search engine's scope will be limited to crawling content from the following domains:
+
+*   [angular.io](http://angular.io)
+*   [api.drupal.org](http://api.drupal.org)
+*   [api.haxe.org](http://api.haxe.org)
+*   [api.qunitjs.com](http://api.qunitjs.com)
+*   [babeljs.io](http://babeljs.io)
+*   [backbonejs.org](http://backbonejs.org)
+*   [bazel.build](http://bazel.build)
+*   [bluebirdjs.com](http://bluebirdjs.com)
+*   [bower.io](http://bower.io)
+*   [cfdocs.org](http://cfdocs.org)
+*   [clojure.org](http://clojure.org)
+*   [clojuredocs.org](http://clojuredocs.org)
+*   [codecept.io](http://codecept.io)
+*   [codeception.com](http://codeception.com)
+*   [codeigniter.com](http://codeigniter.com)
+*   [coffeescript.org](http://coffeescript.org)
+*   [cran.r-project.org](http://cran.r-project.org)
+*   [crystal-lang.org](http://crystal-lang.org)
+*   [forum.crystal-lang.org](http://forum.crystal-lang.org)
+*   [css-tricks.com](http://css-tricks.com)
+*   [dart.dev](http://dart.dev)
+*   [dev.mysql.com](http://dev.mysql.com)
+*   [developer.apple.com](http://developer.apple.com)
+*   [developer.mozilla.org](http://developer.mozilla.org)
+*   [developer.wordpress.org](http://developer.wordpress.org)
+*   [doc.deno.land](http://doc.deno.land)
+*   [doc.rust-lang.org](http://doc.rust-lang.org)
+*   [docs.astro.build](http://docs.astro.build)
+*   [docs.aws.amazon.com](http://docs.aws.amazon.com)
+*   [docs.brew.sh](http://docs.brew.sh)
+*   [docs.chef.io](http://docs.chef.io)
+*   [docs.cypress.io](http://docs.cypress.io)
+*   [docs.influxdata.com](http://docs.influxdata.com)
+*   [docs.julialang.org](http://docs.julialang.org)
+*   [docs.microsoft.com](http://docs.microsoft.com)
+*   [docs.npmjs.com](http://docs.npmjs.com)
+*   [docs.oracle.com](http://docs.oracle.com)
+*   [docs.phalconphp.com](http://docs.phalconphp.com)
+*   [docs.python.org](http://docs.python.org)
+*   [docs.rs](http://docs.rs)
+*   [docs.ruby-lang.org](http://docs.ruby-lang.org)
+*   [docs.saltproject.io](http://docs.saltproject.io)
+*   [docs.wagtail.org](http://docs.wagtail.org)
+*   [doctrine-project.org](http://doctrine-project.org)
+*   [docwiki.embarcadero.com](http://docwiki.embarcadero.com)
+*   [eigen.tuxfamily.org](http://eigen.tuxfamily.org)
+*   [elixir-lang.org](http://elixir-lang.org)
+*   [elm-lang.org](http://elm-lang.org)
+*   [en.cppreference.com](http://en.cppreference.com)
+*   [enzymejs.github.io](http://enzymejs.github.io)
+*   [erights.org](http://erights.org)
+*   [erlang.org](http://erlang.org)
+*   [esbuild.github.io](http://esbuild.github.io)
+*   [eslint.org](http://eslint.org)
+*   [expressjs.com](http://expressjs.com)
+*   [fastapi.tiangolo.com](http://fastapi.tiangolo.com)
+*   [flow.org](http://flow.org)
+*   [fortran90.org](http://fortran90.org)
+*   [fsharp.org](http://fsharp.org)
+*   [getbootstrap.com](http://getbootstrap.com)
+*   [getcomposer.org](http://getcomposer.org)
+*   [git-scm.com](http://git-scm.com)
+*   [gnu.org](http://gnu.org)
+*   [gnucobol.sourceforge.io](http://gnucobol.sourceforge.io)
+*   [go.dev](http://go.dev)
+*   [golang.org](http://golang.org)
+*   [graphite.readthedocs.io](http://graphite.readthedocs.io)
+*   [groovy-lang.org](http://groovy-lang.org)
+*   [gruntjs.com](http://gruntjs.com)
+*   [handlebarsjs.com](http://handlebarsjs.com)
+*   [haskell.org](http://haskell.org)
+*   [hex.pm](http://hex.pm)
+*   [hexdocs.pm](http://hexdocs.pm)
+*   [httpd.apache.org](http://httpd.apache.org)
+*   [i3wm.org](http://i3wm.org)
+*   [jasmine.github.io](http://jasmine.github.io)
+*   [javascript.info](http://javascript.info)
+*   [jekyllrb.com](http://jekyllrb.com)
+*   [jsdoc.app](http://jsdoc.app)
+*   [julialang.org](http://julialang.org)
+*   [knockoutjs.com](http://knockoutjs.com)
+*   [kotlinlang.org](http://kotlinlang.org)
+*   [laravel.com](http://laravel.com)
+*   [latexref.xyz](http://latexref.xyz)
+*   [learn.microsoft.com](http://learn.microsoft.com)
+*   [lesscss.org](http://lesscss.org)
+*   [love2d.org](http://love2d.org)
+*   [lua.org](http://lua.org)
+*   [man7.org](http://man7.org)
+*   [mariadb.com](http://mariadb.com)
+*   [mochajs.org](http://mochajs.org)
+*   [modernizr.com](http://modernizr.com)
+*   [momentjs.com](http://momentjs.com)
+*   [mongoosejs.com](http://mongoosejs.com)
+*   [next.router.vuejs.org](http://next.router.vuejs.org)
+*   [next.vuex.vuejs.org](http://next.vuex.vuejs.org)
+*   [nginx.org](http://nginx.org)
+*   [nim-lang.org](http://nim-lang.org)
+*   [nixos.org](http://nixos.org)
+*   [nodejs.org](http://nodejs.org)
+*   [npmjs.com](http://npmjs.com)
+*   [ocaml.org](http://ocaml.org)
+*   [odin-lang.org](http://odin-lang.org)
+*   [openjdk.java.net](http://openjdk.java.net)
+*   [opentsdb.net](http://opentsdb.net)
+*   [perldoc.perl.org](http://perldoc.perl.org)
+*   [php.net](http://php.net)
+*   [playwright.dev](http://playwright.dev)
+*   [pointclouds.org](http://pointclouds.org)
+*   [postgresql.org](http://postgresql.org)
+*   [prettier.io](http://prettier.io)
+*   [pugjs.org](http://pugjs.org)
+*   [pydata.org](http://pydata.org)
+*   [pytorch.org](http://pytorch.org)
+*   [qt.io](http://qt.io)
+*   [r-project.org](http://r-project.org)
+*   [react-bootstrap.github.io](http://react-bootstrap.github.io)
+*   [reactivex.io](http://reactivex.io)
+*   [reactjs.org](http://reactjs.org)
+*   [reactnative.dev](http://reactnative.dev)
+*   [reactrouterdotcom.fly.dev](http://reactrouterdotcom.fly.dev)
+*   [readthedocs.io](http://readthedocs.io)
+*   [readthedocs.org](http://readthedocs.org)
+*   [redis.io](http://redis.io)
+*   [redux.js.org](http://redux.js.org)
+*   [requirejs.org](http://requirejs.org)
+*   [rethinkdb.com](http://rethinkdb.com)
+*   [ruby-doc.org](http://ruby-doc.org)
+*   [ruby-lang.org](http://ruby-lang.org)
+*   [rust-lang.org](http://rust-lang.org)
+*   [rxjs.dev](http://rxjs.dev)
+*   [sass-lang.com](http://sass-lang.com)
+*   [scala-lang.org](http://scala-lang.org)
+*   [scikit-image.org](http://scikit-image.org)
+*   [scikit-learn.org](http://scikit-learn.org)
+*   [spring.io](http://spring.io)
+*   [sqlite.org](http://sqlite.org)
+*   [stdlib.ponylang.io](http://stdlib.ponylang.io)
+*   [superuser.com](http://superuser.com)
+*   [svelte.dev](http://svelte.dev)
+*   [swift.org](http://swift.org)
+*   [tailwindcss.com](http://tailwindcss.com)
+*   [twig.symfony.com](http://twig.symfony.com)
+*   [typescriptlang.org](http://typescriptlang.org)
+*   [underscorejs.org](http://underscorejs.org)
+*   [vitejs.dev](http://vitejs.dev)
+*   [vitest.dev](http://vitest.dev)
+*   [vuejs.org](http://vuejs.org)
+*   [vueuse.org](http://vueuse.org)
+*   [webpack.js.org](http://webpack.js.org)
+*   [wiki.archlinux.org](http://wiki.archlinux.org)
+*   [www.chaijs.com](http://www.chaijs.com)
+*   [www.electronjs.org](http://www.electronjs.org)
+*   [www.gnu.org](http://www.gnu.org)
+*   [www.hammerspoon.org](http://www.hammerspoon.org)
+*   [www.khronos.org](http://www.khronos.org)
+*   [www.lua.org](http://www.lua.org)
+*   [www.php.net/manual/en/](http://www.php.net/manual/en/)
+*   [www.pygame.org](http://www.pygame.org)
+*   [www.rubydoc.info](http://www.rubydoc.info)
+*   [www.statsmodels.org](http://www.statsmodels.org)
+*   [www.tcl.tk](http://www.tcl.tk)
+*   [www.terraform.io](http://www.terraform.io)
+*   [www.vagrantup.com](http://www.vagrantup.com)
+*   [www.yiiframework.com](http://www.yiiframework.com)
+*   [yarnpkg.com](http://yarnpkg.com)

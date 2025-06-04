@@ -1,0 +1,257 @@
+schema doc {
+    document doc {
+        # Document type differentiation
+        field doc_type type string {
+            indexing: summary | attribute
+            # Values: "full_doc", "chunk"
+        }
+        
+        # Common fields
+        field id type string { 
+            indexing: summary | attribute 
+        }
+        
+        field url type string { 
+            indexing: summary | attribute 
+        }
+        
+        field domain type string { 
+            indexing: summary | attribute 
+        }
+        
+        field title type string { 
+            indexing: summary | index
+            index: enable-bm25 
+        }
+        
+        field crawled_at type string { 
+            indexing: summary | attribute 
+        }
+        
+        # Full document fields (doc_type="full_doc")
+        field content type string { 
+            indexing: summary | index
+            index: enable-bm25
+        }
+        
+        field description type string {
+            indexing: summary | index
+            index: enable-bm25
+        }
+        
+        field keywords type string { 
+            indexing: summary | index 
+        }
+        
+        field code_snippets type array<string> { 
+            indexing: summary 
+        }
+        
+        field content_embedding type tensor<float>(x[384]) {
+            indexing: attribute | index
+            attribute {
+                distance-metric: angular
+            }
+            index {
+                hnsw {
+                    max-links-per-node: 16
+                    neighbors-to-explore-at-insert: 200
+                }
+            }
+        }
+        
+        # Chunk-specific fields (doc_type="chunk")
+        field parent_id type string { 
+            indexing: summary | attribute 
+        }
+        
+        field chunk_content type string { 
+            indexing: summary 
+        }
+        
+        field chunk_index type int { 
+            indexing: summary | attribute 
+        }
+        
+        field chunk_start type int { 
+            indexing: summary | attribute 
+        }
+        
+        field chunk_end type int { 
+            indexing: summary | attribute 
+        }
+        
+        field chunk_size type int { 
+            indexing: summary | attribute 
+        }
+        
+        field chunk_embedding type tensor<float>(x[384]) {
+            indexing: attribute | index
+            attribute {
+                distance-metric: angular
+            }
+            index {
+                hnsw {
+                    max-links-per-node: 16
+                    neighbors-to-explore-at-insert: 200
+                }
+            }
+        }
+        
+        field parent_doc_type type string { 
+            indexing: summary | attribute 
+        }
+    }
+    
+    fieldset default {
+        fields: title, content, description
+    }
+    
+    # Optimized dynamic snippet summary for full documents
+    document-summary dynamic_snippet {
+        from-disk
+        summary dynamic_content {
+            source: content
+            dynamic
+        }
+        summary title { source: title }
+        summary url { source: url }
+        summary domain { source: domain }
+        summary id { source: id }
+        summary doc_type { source: doc_type }
+    }
+    
+    # Summary for chunk documents
+    document-summary chunk_summary {
+        summary chunk_content { source: chunk_content }
+        summary title { source: title }
+        summary url { source: url }
+        summary domain { source: domain }
+        summary id { source: id }
+        summary parent_id { source: parent_id }
+        summary chunk_index { source: chunk_index }
+        summary doc_type { source: doc_type }
+        summary crawled_at { source: crawled_at }
+    }
+    
+    # Ranking profiles
+    rank-profile bm25_full inherits default {
+        first-phase {
+            expression: bm25(title) + 0.8*bm25(content) + 0.5*bm25(description)
+        }
+    }
+    
+    rank-profile semantic_chunks {
+        inputs {
+            query(query_embedding) tensor<float>(x[384])
+        }
+        first-phase {
+            expression: closeness(field, chunk_embedding)
+        }
+    }
+    
+    rank-profile semantic_full {
+        inputs {
+            query(query_embedding) tensor<float>(x[384])
+        }
+        first-phase {
+            expression: closeness(field, content_embedding)
+        }
+    }
+    
+    rank-profile hybrid inherits default {
+        inputs {
+            query(query_embedding) tensor<float>(x[384])
+        }
+        first-phase {
+            expression {
+                if (attribute(doc_type) == "full_doc",
+                    # Normalize BM25 using sigmoid: 1/(1+exp(-x/5)) 
+                    # Balanced weighting: 50% BM25 + 50% semantic
+                    0.5 * (1.0 / (1.0 + exp(-1 * (bm25(title) + 0.8*bm25(content) + 0.5*bm25(description)) / 5.0))) + 0.5 * closeness(field, content_embedding),
+                    closeness(field, chunk_embedding))
+            }
+        }
+    }
+    
+    rank-profile semantic_fast {
+        inputs { 
+            query(query_embedding) tensor<float>(x[384]) 
+        }
+        
+        first-phase { 
+            expression: closeness(field, content_embedding) 
+        }
+        
+        # Performance tuning
+        num-threads-per-search: 2
+        min-hits-per-thread: 25
+        num-search-partitions: 1
+        termwise-limit: 0.05
+    }
+    
+    rank-profile hybrid_fast inherits default {
+        inputs { 
+            query(query_embedding) tensor<float>(x[384]) 
+        }
+        
+        first-phase {
+            expression {
+                # Normalize BM25 using sigmoid: 1/(1+exp(-x/5))
+                # Balanced weighting: 50% BM25 + 50% semantic
+                0.5 * (1.0 / (1.0 + exp(-1 * (bm25(title) + 0.8*bm25(content) + 0.5*bm25(description)) / 5.0))) + 0.5 * closeness(field, content_embedding)
+            }
+        }
+        
+        # Performance tuning
+        num-threads-per-search: 2
+        min-hits-per-thread: 25
+        termwise-limit: 0.05
+    }
+    
+    # Ultra-optimized BM25 profile
+    rank-profile bm25_ultra inherits default {
+        first-phase {
+            expression: bm25(title) + 0.8*bm25(content) + 0.5*bm25(description)
+        }
+        
+        num-threads-per-search: 1
+        min-hits-per-thread: 20
+        termwise-limit: 0.02
+    }
+    
+    # Ultra-optimized semantic profile 
+    rank-profile semantic_ultra {
+        inputs {
+            query(query_embedding) tensor<float>(x[384])
+        }
+        
+        first-phase {
+            expression: closeness(field, chunk_embedding)
+        }
+        
+        num-threads-per-search: 1
+        min-hits-per-thread: 10
+    }
+    
+    # Ultra-optimized hybrid profile
+    rank-profile hybrid_ultra inherits default {
+        inputs {
+            query(query_embedding) tensor<float>(x[384])
+        }
+        
+        first-phase {
+            expression {
+                # Normalize BM25 using sigmoid: 1/(1+exp(-x/5))
+                # This maps BM25 scores (0-50+) to roughly (0-1) range
+                # Balanced weighting: 50% BM25 + 50% semantic
+                (0.5 * (1.0 / (1.0 + exp(-1 * (bm25(title) + 0.8*bm25(content) + 0.5*bm25(description)) / 5.0)))) +
+                (0.5 * closeness(field, content_embedding))
+            }
+        }
+        
+        num-threads-per-search: 1
+        min-hits-per-thread: 20
+        termwise-limit: 0.02
+    }
+}

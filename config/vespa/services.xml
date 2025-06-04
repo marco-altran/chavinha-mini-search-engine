@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<services version="1.0">
+    <container id="default" version="1.0">
+        <search/>
+        <document-api/>
+        
+        <http>
+            <server id="default" port="4080">
+                <!-- Optimize connections -->
+                <config name="jdisc.http.connector">
+                    <acceptQueueSize>2048</acceptQueueSize>
+                    <idleTimeout>30.0</idleTimeout>
+                    <tcpNoDelay>true</tcpNoDelay>
+                    <reuseAddress>true</reuseAddress>
+                </config>
+            </server>
+        </http>
+        
+        <config name="container.handler.threadpool">
+            <maxthreads>8</maxthreads>
+            <corePoolSize>4</corePoolSize>
+            <keepAliveTime>5.0</keepAliveTime>
+        </config>
+        
+        <config name="search.config.qr-start">
+            <jvm>
+                <verbosegc>false</verbosegc>
+                <gcopts>-XX:+UseG1GC -XX:MaxGCPauseMillis=10</gcopts>
+                <heapsize>2048</heapsize>
+            </jvm>
+        </config>
+        
+        <nodes>
+            <node hostalias="node1"/>
+        </nodes>
+    </container>
+    <content id="documentation" version="1.0">
+        <redundancy>1</redundancy>
+        <documents>
+            <document type="doc" mode="index"/>
+        </documents>
+        <nodes>
+            <node hostalias="node1" distribution-key="0"/>
+        </nodes>
+        <engine>
+            <proton>
+                <searchable-copies>1</searchable-copies>
+                <tuning>
+                    <searchnode>
+                        <requestthreads>
+                            <persearch>1</persearch>
+                        </requestthreads>
+                        <feeding>
+                            <concurrency>0.2</concurrency>
+                        </feeding>
+                    </searchnode>
+                </tuning>
+            </proton>
+        </engine>
+        <config name="vespa.config.search.core.proton">
+            <numsearcherthreads>2</numsearcherthreads>
+            <numthreadspersearch>1</numthreadspersearch>
+        </config>
+    </content>
+</services>

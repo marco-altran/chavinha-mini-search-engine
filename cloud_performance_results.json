@@ -1,0 +1,332 @@
+{
+  "api_url": "https://mini-search-engine-api-543728486451.us-central1.run.app",
+  "test_timestamp": "2025-06-04T19:34:01.465577",
+  "test_queries": [
+    "angular dependency injection",
+    "python asyncio tutorial",
+    "javascript async await",
+    "docker compose networking",
+    "kubernetes pod management",
+    "react useEffect hook",
+    "vue reactive data",
+    "typescript interface types",
+    "golang goroutines",
+    "rust memory safety",
+    "aws lambda functions",
+    "database connection pooling"
+  ],
+  "runs_per_query": 1,
+  "search_types": {
+    "bm25": {
+      "queries": [
+        {
+          "query": "angular dependency injection",
+          "time_ms": 27.55,
+          "vespa_time_ms": 24.0,
+          "embedding_time_ms": null,
+          "result_count": 10
+        },
+        {
+          "query": "python asyncio tutorial",
+          "time_ms": 48.71,
+          "vespa_time_ms": 45.0,
+          "embedding_time_ms": null,
+          "result_count": 10
+        },
+        {
+          "query": "javascript async await",
+          "time_ms": 25.83,
+          "vespa_time_ms": 21.0,
+          "embedding_time_ms": null,
+          "result_count": 10
+        },
+        {
+          "query": "docker compose networking",
+          "time_ms": 30.56,
+          "vespa_time_ms": 26.000000000000004,
+          "embedding_time_ms": null,
+          "result_count": 10
+        },
+        {
+          "query": "kubernetes pod management",
+          "time_ms": 29.56,
+          "vespa_time_ms": 26.000000000000004,
+          "embedding_time_ms": null,
+          "result_count": 10
+        },
+        {
+          "query": "react useEffect hook",
+          "time_ms": 70.57,
+          "vespa_time_ms": 66.0,
+          "embedding_time_ms": null,
+          "result_count": 10
+        },
+        {
+          "query": "vue reactive data",
+          "time_ms": 52.59,
+          "vespa_time_ms": 48.0,
+          "embedding_time_ms": null,
+          "result_count": 10
+        },
+        {
+          "query": "typescript interface types",
+          "time_ms": 58.74,
+          "vespa_time_ms": 55.0,
+          "embedding_time_ms": null,
+          "result_count": 10
+        },
+        {
+          "query": "golang goroutines",
+          "time_ms": 23.8,
+          "vespa_time_ms": 20.0,
+          "embedding_time_ms": null,
+          "result_count": 10
+        },
+        {
+          "query": "rust memory safety",
+          "time_ms": 43.37,
+          "vespa_time_ms": 39.0,
+          "embedding_time_ms": null,
+          "result_count": 10
+        },
+        {
+          "query": "aws lambda functions",
+          "time_ms": 64.72,
+          "vespa_time_ms": 60.0,
+          "embedding_time_ms": null,
+          "result_count": 10
+        },
+        {
+          "query": "database connection pooling",
+          "time_ms": 41.91,
+          "vespa_time_ms": 38.0,
+          "embedding_time_ms": null,
+          "result_count": 10
+        }
+      ],
+      "statistics": {
+        "average_ms": 43.16,
+        "median_ms": 42.64,
+        "min_ms": 23.8,
+        "max_ms": 70.57,
+        "stdev_ms": 16.08,
+        "p95_ms": 70.57,
+        "under_50ms_count": 8,
+        "under_50ms_percentage": 66.7
+      }
+    },
+    "semantic": {
+      "queries": [
+        {
+          "query": "angular dependency injection",
+          "time_ms": 61.58,
+          "vespa_time_ms": 47.0,
+          "embedding_time_ms": 4.757165908813477,
+          "result_count": 6
+        },
+        {
+          "query": "python asyncio tutorial",
+          "time_ms": 60.28,
+          "vespa_time_ms": 49.0,
+          "embedding_time_ms": 4.617452621459961,
+          "result_count": 10
+        },
+        {
+          "query": "javascript async await",
+          "time_ms": 59.4,
+          "vespa_time_ms": 47.0,
+          "embedding_time_ms": 4.777431488037109,
+          "result_count": 7
+        },
+        {
+          "query": "docker compose networking",
+          "time_ms": 59.9,
+          "vespa_time_ms": 50.0,
+          "embedding_time_ms": 4.020214080810547,
+          "result_count": 10
+        },
+        {
+          "query": "kubernetes pod management",
+          "time_ms": 59.42,
+          "vespa_time_ms": 48.0,
+          "embedding_time_ms": 4.425048828125,
+          "result_count": 10
+        },
+        {
+          "query": "react useEffect hook",
+          "time_ms": 62.16,
+          "vespa_time_ms": 50.0,
+          "embedding_time_ms": 5.247831344604492,
+          "result_count": 10
+        },
+        {
+          "query": "vue reactive data",
+          "time_ms": 56.15,
+          "vespa_time_ms": 46.0,
+          "embedding_time_ms": 3.944873809814453,
+          "result_count": 8
+        },
+        {
+          "query": "typescript interface types",
+          "time_ms": 57.38,
+          "vespa_time_ms": 47.0,
+          "embedding_time_ms": 3.9281845092773438,
+          "result_count": 7
+        },
+        {
+          "query": "golang goroutines",
+          "time_ms": 59.27,
+          "vespa_time_ms": 49.0,
+          "embedding_time_ms": 4.711627960205078,
+          "result_count": 10
+        },
+        {
+          "query": "rust memory safety",
+          "time_ms": 61.34,
+          "vespa_time_ms": 50.0,
+          "embedding_time_ms": 4.356622695922852,
+          "result_count": 10
+        },
+        {
+          "query": "aws lambda functions",
+          "time_ms": 56.07,
+          "vespa_time_ms": 46.0,
+          "embedding_time_ms": 4.289865493774414,
+          "result_count": 7
+        },
+        {
+          "query": "database connection pooling",
+          "time_ms": 59.65,
+          "vespa_time_ms": 49.0,
+          "embedding_time_ms": 3.874540328979492,
+          "result_count": 8
+        }
+      ],
+      "statistics": {
+        "average_ms": 59.38,
+        "median_ms": 59.53,
+        "min_ms": 56.07,
+        "max_ms": 62.16,
+        "stdev_ms": 1.98,
+        "p95_ms": 62.16,
+        "under_50ms_count": 0,
+        "under_50ms_percentage": 0.0
+      }
+    },
+    "hybrid": {
+      "queries": [
+        {
+          "query": "angular dependency injection",
+          "time_ms": 17.1,
+          "vespa_time_ms": 7.0,
+          "embedding_time_ms": 4.012346267700195,
+          "result_count": 10
+        },
+        {
+          "query": "python asyncio tutorial",
+          "time_ms": 21.5,
+          "vespa_time_ms": 12.0,
+          "embedding_time_ms": 4.627227783203125,
+          "result_count": 10
+        },
+        {
+          "query": "javascript async await",
+          "time_ms": 19.34,
+          "vespa_time_ms": 10.0,
+          "embedding_time_ms": 4.548072814941406,
+          "result_count": 10
+        },
+        {
+          "query": "docker compose networking",
+          "time_ms": 18.35,
+          "vespa_time_ms": 8.0,
+          "embedding_time_ms": 4.038095474243164,
+          "result_count": 10
+        },
+        {
+          "query": "kubernetes pod management",
+          "time_ms": 17.7,
+          "vespa_time_ms": 8.0,
+          "embedding_time_ms": 4.477500915527344,
+          "result_count": 10
+        },
+        {
+          "query": "react useEffect hook",
+          "time_ms": 20.87,
+          "vespa_time_ms": 10.0,
+          "embedding_time_ms": 4.974603652954102,
+          "result_count": 10
+        },
+        {
+          "query": "vue reactive data",
+          "time_ms": 19.75,
+          "vespa_time_ms": 10.0,
+          "embedding_time_ms": 4.382133483886719,
+          "result_count": 10
+        },
+        {
+          "query": "typescript interface types",
+          "time_ms": 21.2,
+          "vespa_time_ms": 11.0,
+          "embedding_time_ms": 4.144191741943359,
+          "result_count": 10
+        },
+        {
+          "query": "golang goroutines",
+          "time_ms": 16.41,
+          "vespa_time_ms": 7.0,
+          "embedding_time_ms": 4.6405792236328125,
+          "result_count": 10
+        },
+        {
+          "query": "rust memory safety",
+          "time_ms": 18.33,
+          "vespa_time_ms": 7.0,
+          "embedding_time_ms": 3.893613815307617,
+          "result_count": 10
+        },
+        {
+          "query": "aws lambda functions",
+          "time_ms": 25.62,
+          "vespa_time_ms": 16.0,
+          "embedding_time_ms": 3.964662551879883,
+          "result_count": 10
+        },
+        {
+          "query": "database connection pooling",
+          "time_ms": 20.76,
+          "vespa_time_ms": 10.0,
+          "embedding_time_ms": 4.467964172363281,
+          "result_count": 10
+        }
+      ],
+      "statistics": {
+        "average_ms": 19.74,
+        "median_ms": 19.55,
+        "min_ms": 16.41,
+        "max_ms": 25.62,
+        "stdev_ms": 2.49,
+        "p95_ms": 25.62,
+        "under_50ms_count": 12,
+        "under_50ms_percentage": 100.0
+      }
+    }
+  },
+  "summary": {
+    "total_queries_tested": 36,
+    "overall_average_ms": 40.76,
+    "overall_median_ms": 42.64,
+    "overall_min_ms": 16.41,
+    "overall_max_ms": 70.57,
+    "overall_under_50ms_percentage": 55.6
+  },
+  "cold_start_tests": {
+    "times_ms": [
+      58.895999999999994,
+      47.192,
+      53.208
+    ],
+    "average_ms": 53.1,
+    "max_ms": 58.9
+  }
+}

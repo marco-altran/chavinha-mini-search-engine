@@ -1,0 +1,161 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.hypothesis/
+*.cover
+*.py,cover
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# Virtual environments
+venv/
+ENV/
+env/
+.venv/
+.ENV/
+.env/
+.devcontainer/
+
+# Poetry
+poetry.lock
+.poetry/
+
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+.npm
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+
+# Logs
+*.log
+logs/
+api/logs/
+
+# Crawler specific
+crawler/jobs/
+crawled_data/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# OS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# Environment variables
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+*.env
+
+# Docker
+docker-compose.override.yml
+.dockerignore
+
+# Vespa
+vespa-app.zip
+vespa-deploy-*.log
+
+# Temporary files
+*.tmp
+*.temp
+*.bak
+*.backup
+*.old
+.~*
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
+
+# Jupyter Notebooks
+.ipynb_checkpoints/
+*.ipynb
+
+# Testing
+.pytest_cache/
+.mypy_cache/
+.dmypy.json
+dmypy.json
+.pyre/
+.pytype/
+
+# Documentation build
+docs/_build/
+docs/.doctrees/
+site/
+
+# Cache directories
+.cache/
+.parcel-cache/
+
+# Output directories
+output/
+results/
+exports/
+
+# Secrets and credentials
+secrets/
+credentials/
+*.pem
+*.key
+*.cert
+*.crt
+certs/
+
+# Hugging Face models
+models/
