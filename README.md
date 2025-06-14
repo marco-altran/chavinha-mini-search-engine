@@ -6,8 +6,9 @@ Chavinha is a specialized search engine for programming documentation that uses 
 
 ## Live Demo
 
-**Working Demo**: [https://mini-search-engine-api-543728486451.us-central1.run.app/](https://mini-search-engine-api-543728486451.us-central1.run.app/)  
-*Available until June 14th, 2025*
+~~**Working Demo**: [https://mini-search-engine-api-543728486451.us-central1.run.app/](https://mini-search-engine-api-543728486451.us-central1.run.app/)~~
+
+*No longer available since June 14th, 2025*
 
 ### Cost-Optimized Cloud Architecture
 - **API**: Google Cloud Run (auto-scaling, cold start optimization)
