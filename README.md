@@ -96,7 +96,6 @@ The current monolithic architecture was optimized for rapid development and demo
 **Production Solution**:
 - **Orchestration**: Kubernetes-based crawler workers with horizontal scaling
 - **State Management**: PostgreSQL for distributed crawler state
-- **Work Distribution**: Redis-based distributed queue with domain-aware sharding
 - **Monitoring**: Grafana metrics + custom crawler dashboard
 
 #### 2. Message Queue Architecture
