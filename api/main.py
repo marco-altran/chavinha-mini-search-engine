@@ -15,6 +15,7 @@ import onnxruntime as ort
 from transformers import AutoTokenizer
 import time
 import ssl
+import math
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -325,6 +326,65 @@ def encode_query(text: str) -> np.ndarray:
     return normalized[0]
 
 
+def normalize_bm25_score(bm25_score: float) -> float:
+    """Normalize BM25 score using sigmoid function like in Vespa hybrid profiles"""
+    # Same formula as in Vespa schema: 1.0 / (1.0 + exp(-1 * bm25_score / 200.0))
+    return 1.0 / (1.0 + math.exp(-1 * bm25_score / 200.0))
+
+
+def merge_search_results(bm25_results: List[Dict], semantic_results: List[Dict], 
+                        bm25_weight: float = 0.5, semantic_weight: float = 0.5) -> List[Dict]:
+    """Merge BM25 and semantic search results with proper score normalization"""
+    # Create a mapping of document ID to results
+    merged_results = {}
+    
+    # Process BM25 results
+    for result in bm25_results:
+        doc_id = result.get("fields", {}).get("id", "")
+        if doc_id:
+            normalized_bm25_score = normalize_bm25_score(result.get("relevance", 0.0))
+            merged_results[doc_id] = {
+                "result": result,
+                "bm25_score": normalized_bm25_score,
+                "semantic_score": 0.0,
+                "combined_score": bm25_weight * normalized_bm25_score
+            }
+    
+    # Process semantic results and merge
+    for result in semantic_results:
+        fields = result.get("fields", {})
+        # For chunks, use parent_id; for full docs, use id
+        doc_id = fields.get("parent_id") or fields.get("id", "")
+        if doc_id:
+            semantic_score = result.get("relevance", 0.0)
+            
+            if doc_id in merged_results:
+                # Update existing result with semantic score
+                merged_results[doc_id]["semantic_score"] = semantic_score
+                merged_results[doc_id]["combined_score"] += semantic_weight * semantic_score
+            else:
+                # Add new result from semantic search only
+                merged_results[doc_id] = {
+                    "result": result,
+                    "bm25_score": 0.0,
+                    "semantic_score": semantic_score,
+                    "combined_score": semantic_weight * semantic_score
+                }
+    
+    # Sort by combined score and return results
+    sorted_results = sorted(merged_results.values(), 
+                          key=lambda x: x["combined_score"], 
+                          reverse=True)
+    
+    # Return the actual Vespa result objects with updated relevance scores
+    final_results = []
+    for item in sorted_results:
+        result = item["result"].copy()
+        result["relevance"] = item["combined_score"]
+        final_results.append(result)
+    
+    return final_results
+
 
 
 async def generate_query_embedding(query: str) -> tuple[List[float], float]:
@@ -345,48 +405,19 @@ async def generate_query_embedding(query: str) -> tuple[List[float], float]:
         raise HTTPException(status_code=500, detail="Embedding generation failed")
 
 
-async def search_vespa(query: str, search_type: str = "hybrid", limit: int = 10, performance_mode: str = "ultra") -> Dict:
-    """Perform search on Vespa"""
-    start_time = datetime.now()
-    
-    # Determine ranking profile based on performance mode
+async def search_vespa_bm25(query: str, limit: int = 10, performance_mode: str = "ultra") -> Dict:
+    """Perform BM25 search on Vespa"""
     ranking_suffix = "_ultra" if performance_mode == "ultra" else ""
     
-    # Prepare search request based on search type
-    if search_type == "semantic":
-        # Search chunks only for semantic search
-        search_params = {
-            "yql": f"select * from sources * where {{targetHits: {limit}}}nearestNeighbor(chunk_embedding, query_embedding) and doc_type contains 'chunk'",
-            "ranking": f"semantic{'_chunks' if not ranking_suffix else '_ultra'}",
-            "hits": limit,
-            "summary": "chunk_summary",
-            "presentation.timing": "true"
-        }
-    elif search_type == "hybrid":
-        # For hybrid, use BM25 on full docs with embedding boost
-        search_params = {
-            "yql": f"select * from sources * where userQuery() limit {limit}",
-            "query": query,
-            "ranking": f"hybrid{ranking_suffix}",
-            "hits": limit,  # Get more results to ensure both types are represented
-            "presentation.timing": "true"
-        }
-    else:  # bm25
-        # Search full documents only for BM25
-        search_params = {
-            "yql": f"select * from sources * where doc_type contains 'full_doc' and userQuery() limit {limit}",
-            "query": query,
-            "ranking": f"bm25{'_full' if not ranking_suffix else '_ultra'}",
-            "hits": limit,
-            "summary": "dynamic_snippet",
-            "presentation.timing": "true"
-        }
-    
-    # Add query embedding for semantic and hybrid search
-    embedding_time_ms = None
-    if search_type in ["semantic", "hybrid"]:
-        embedding, embedding_time_ms = await generate_query_embedding(query)
-        search_params["input.query(query_embedding)"] = json.dumps(embedding)
+    # Search full documents only for BM25
+    search_params = {
+        "yql": f"select * from sources * where doc_type contains 'full_doc' and userQuery() limit {limit}",
+        "query": query,
+        "ranking": f"bm25{'_full' if not ranking_suffix else '_ultra'}",
+        "hits": limit,
+        "summary": "dynamic_snippet",
+        "presentation.timing": "true"
+    }
     
     # Prepare headers for authentication and compression
     headers = {
@@ -398,66 +429,206 @@ async def search_vespa(query: str, search_type: str = "hybrid", limit: int = 10,
     
     # Perform search using global session
     try:
-        vespa_start_time = datetime.now()
         async with global_session.get(
             f"{vespa_url}/search/",
             params=search_params,
             headers=headers
         ) as response:
-                if response.status == 200:
-                    response_received_time = datetime.now()
-                    data = await response.json()
-                    json_parsed_time = datetime.now()
-                    vespa_end_time = datetime.now()
-                    
-                    # Detailed timing breakdown
-                    vespa_search_time = (vespa_end_time - vespa_start_time).total_seconds() * 1000
-                    network_time = (response_received_time - vespa_start_time).total_seconds() * 1000
-                    json_parse_time = (json_parsed_time - response_received_time).total_seconds() * 1000
-                    total_search_time = (vespa_end_time - start_time).total_seconds() * 1000
-                    
-                    # Extract Vespa native timing (convert from seconds to ms)
-                    vespa_timing = data.get("timing", {})
-                    vespa_querytime_ms = vespa_timing.get("querytime", 0) * 1000
-                    vespa_summaryfetchtime_ms = vespa_timing.get("summaryfetchtime", 0) * 1000
-                    vespa_searchtime_ms = vespa_timing.get("searchtime", 0) * 1000
-                    
-                    # Calculate overhead
-                    network_overhead = network_time - vespa_searchtime_ms
-                    
-                    # Log normal timing
-                    logger.info(f"Vespa search took {vespa_search_time:.2f}ms for query: '{query}' (type: {search_type})")
-                    logger.info(f"Detailed timing - network: {network_time:.2f}ms, json_parse: {json_parse_time:.2f}ms")
-                    logger.info(f"Vespa native timing - query: {vespa_querytime_ms:.2f}ms, summary: {vespa_summaryfetchtime_ms:.2f}ms, total: {vespa_searchtime_ms:.2f}ms")
-                    
-                    # Detect and log timing anomalies
-                    if network_overhead > 50:  # More than 50ms overhead is unusual
-                        logger.warning(f"HIGH NETWORK OVERHEAD DETECTED: {network_overhead:.2f}ms for query '{query}'")
-                        logger.warning(f"Network breakdown - total_network: {network_time:.2f}ms, vespa_native: {vespa_searchtime_ms:.2f}ms")
-                        # Log connection pool stats if available
-                        if hasattr(global_session.connector, '_conns'):
-                            active_conns = len(global_session.connector._conns)
-                            logger.warning(f"Connection pool stats - active_connections: {active_conns}")
-                    elif network_overhead > 20:  # More than 20ms is notable
-                        logger.info(f"Moderate network overhead: {network_overhead:.2f}ms for query '{query}'")
-                    
-                    return {
-                        "results": data,
-                        "search_time_ms": total_search_time,
-                        "vespa_search_time_ms": vespa_search_time,
-                        "vespa_querytime_ms": vespa_querytime_ms,
-                        "vespa_summaryfetchtime_ms": vespa_summaryfetchtime_ms,
-                        "vespa_searchtime_ms": vespa_searchtime_ms,
-                        "embedding_time_ms": embedding_time_ms
-                    }
-                else:
-                    logger.error(f"Vespa search failed: {response.status}")
-                    text = await response.text()
-                    logger.error(f"Response: {text}")
-                    raise HTTPException(status_code=500, detail="Search service error")
+            if response.status == 200:
+                data = await response.json()
+                return data
+            else:
+                logger.error(f"Vespa BM25 search failed: {response.status}")
+                text = await response.text()
+                logger.error(f"Response: {text}")
+                raise HTTPException(status_code=500, detail="BM25 search service error")
     except aiohttp.ClientError as e:
-        logger.error(f"Failed to connect to Vespa: {str(e)}")
-        raise HTTPException(status_code=503, detail="Search service unavailable")
+        logger.error(f"Failed to connect to Vespa for BM25 search: {str(e)}")
+        raise HTTPException(status_code=503, detail="BM25 search service unavailable")
+
+
+async def search_vespa_semantic(query: str, limit: int = 10, performance_mode: str = "ultra") -> tuple[Dict, float]:
+    """Perform semantic search on Vespa"""
+    ranking_suffix = "_ultra" if performance_mode == "ultra" else ""
+    
+    # Generate embedding
+    embedding, embedding_time_ms = await generate_query_embedding(query)
+    
+    # Search chunks only for semantic search
+    search_params = {
+        "yql": f"select * from sources * where {{targetHits: {limit}}}nearestNeighbor(chunk_embedding, query_embedding) and doc_type contains 'chunk'",
+        "ranking": f"semantic{'_chunks' if not ranking_suffix else '_ultra'}",
+        "hits": limit,
+        "summary": "chunk_summary",
+        "presentation.timing": "true",
+        "input.query(query_embedding)": json.dumps(embedding)
+    }
+    
+    # Prepare headers for authentication and compression
+    headers = {
+        "Accept-Encoding": "gzip, deflate",
+        "Accept": "application/json"
+    }
+    if vespa_token:
+        headers["Authorization"] = f"Bearer {vespa_token}"
+    
+    # Perform search using global session
+    try:
+        async with global_session.get(
+            f"{vespa_url}/search/",
+            params=search_params,
+            headers=headers
+        ) as response:
+            if response.status == 200:
+                data = await response.json()
+                return data, embedding_time_ms
+            else:
+                logger.error(f"Vespa semantic search failed: {response.status}")
+                text = await response.text()
+                logger.error(f"Response: {text}")
+                raise HTTPException(status_code=500, detail="Semantic search service error")
+    except aiohttp.ClientError as e:
+        logger.error(f"Failed to connect to Vespa for semantic search: {str(e)}")
+        raise HTTPException(status_code=503, detail="Semantic search service unavailable")
+
+
+async def search_vespa(query: str, search_type: str = "hybrid", limit: int = 10, performance_mode: str = "ultra") -> Dict:
+    """Perform search on Vespa"""
+    start_time = datetime.now()
+    
+    if search_type == "hybrid":
+        # For hybrid search, perform BM25 and semantic searches in parallel
+        try:
+            vespa_start_time = datetime.now()
+            
+            # Run BM25 and semantic searches in parallel
+            bm25_task = search_vespa_bm25(query, limit, performance_mode)
+            semantic_task = search_vespa_semantic(query, limit, performance_mode)
+            
+            bm25_data, (semantic_data, embedding_time_ms) = await asyncio.gather(bm25_task, semantic_task)
+            
+            # Extract hits from both searches
+            bm25_hits = bm25_data.get("root", {}).get("children", [])
+            semantic_hits = semantic_data.get("root", {}).get("children", [])
+            
+            # Merge results with proper score normalization
+            merged_hits = merge_search_results(bm25_hits, semantic_hits)
+            
+            # Create combined response with merged results
+            vespa_end_time = datetime.now()
+            total_search_time = (vespa_end_time - start_time).total_seconds() * 1000
+            vespa_search_time = (vespa_end_time - vespa_start_time).total_seconds() * 1000
+            
+            # Extract timing from both searches (use max values)
+            bm25_timing = bm25_data.get("timing", {})
+            semantic_timing = semantic_data.get("timing", {})
+            
+            vespa_querytime_ms = max(
+                bm25_timing.get("querytime", 0) * 1000,
+                semantic_timing.get("querytime", 0) * 1000
+            )
+            vespa_summaryfetchtime_ms = max(
+                bm25_timing.get("summaryfetchtime", 0) * 1000,
+                semantic_timing.get("summaryfetchtime", 0) * 1000
+            )
+            vespa_searchtime_ms = max(
+                bm25_timing.get("searchtime", 0) * 1000,
+                semantic_timing.get("searchtime", 0) * 1000
+            )
+            
+            # Create combined response
+            combined_data = {
+                "root": {
+                    "children": merged_hits[:limit],  # Limit final results
+                    "totalCount": len(merged_hits)
+                },
+                "timing": {
+                    "querytime": vespa_querytime_ms / 1000,
+                    "summaryfetchtime": vespa_summaryfetchtime_ms / 1000,
+                    "searchtime": vespa_searchtime_ms / 1000
+                }
+            }
+            
+            logger.info(f"Hybrid search took {vespa_search_time:.2f}ms for query: '{query}' (parallel BM25+semantic)")
+            logger.info(f"BM25 results: {len(bm25_hits)}, Semantic results: {len(semantic_hits)}, Merged: {len(merged_hits)}")
+            
+            return {
+                "results": combined_data,
+                "search_time_ms": total_search_time,
+                "vespa_search_time_ms": vespa_search_time,
+                "vespa_querytime_ms": vespa_querytime_ms,
+                "vespa_summaryfetchtime_ms": vespa_summaryfetchtime_ms,
+                "vespa_searchtime_ms": vespa_searchtime_ms,
+                "embedding_time_ms": embedding_time_ms
+            }
+            
+        except Exception as e:
+            logger.error(f"Hybrid search failed: {str(e)}")
+            raise HTTPException(status_code=500, detail="Hybrid search service error")
+    
+    elif search_type == "semantic":
+        # Use dedicated semantic search function
+        try:
+            vespa_start_time = datetime.now()
+            data, embedding_time_ms = await search_vespa_semantic(query, limit, performance_mode)
+            vespa_end_time = datetime.now()
+            
+            total_search_time = (vespa_end_time - start_time).total_seconds() * 1000
+            vespa_search_time = (vespa_end_time - vespa_start_time).total_seconds() * 1000
+            
+            # Extract Vespa native timing
+            vespa_timing = data.get("timing", {})
+            vespa_querytime_ms = vespa_timing.get("querytime", 0) * 1000
+            vespa_summaryfetchtime_ms = vespa_timing.get("summaryfetchtime", 0) * 1000
+            vespa_searchtime_ms = vespa_timing.get("searchtime", 0) * 1000
+            
+            logger.info(f"Semantic search took {vespa_search_time:.2f}ms for query: '{query}'")
+            
+            return {
+                "results": data,
+                "search_time_ms": total_search_time,
+                "vespa_search_time_ms": vespa_search_time,
+                "vespa_querytime_ms": vespa_querytime_ms,
+                "vespa_summaryfetchtime_ms": vespa_summaryfetchtime_ms,
+                "vespa_searchtime_ms": vespa_searchtime_ms,
+                "embedding_time_ms": embedding_time_ms
+            }
+            
+        except Exception as e:
+            logger.error(f"Semantic search failed: {str(e)}")
+            raise HTTPException(status_code=500, detail="Semantic search service error")
+    
+    else:  # bm25
+        # Use dedicated BM25 search function
+        try:
+            vespa_start_time = datetime.now()
+            data = await search_vespa_bm25(query, limit, performance_mode)
+            vespa_end_time = datetime.now()
+            
+            total_search_time = (vespa_end_time - start_time).total_seconds() * 1000
+            vespa_search_time = (vespa_end_time - vespa_start_time).total_seconds() * 1000
+            
+            # Extract Vespa native timing
+            vespa_timing = data.get("timing", {})
+            vespa_querytime_ms = vespa_timing.get("querytime", 0) * 1000
+            vespa_summaryfetchtime_ms = vespa_timing.get("summaryfetchtime", 0) * 1000
+            vespa_searchtime_ms = vespa_timing.get("searchtime", 0) * 1000
+            
+            logger.info(f"BM25 search took {vespa_search_time:.2f}ms for query: '{query}'")
+            
+            return {
+                "results": data,
+                "search_time_ms": total_search_time,
+                "vespa_search_time_ms": vespa_search_time,
+                "vespa_querytime_ms": vespa_querytime_ms,
+                "vespa_summaryfetchtime_ms": vespa_summaryfetchtime_ms,
+                "vespa_searchtime_ms": vespa_searchtime_ms,
+                "embedding_time_ms": None
+            }
+            
+        except Exception as e:
+            logger.error(f"BM25 search failed: {str(e)}")
+            raise HTTPException(status_code=500, detail="BM25 search service error")
 
 
 def format_search_results(vespa_response: Dict, query: str, search_type: str, performance_mode: str = "ultra") -> SearchResponse:

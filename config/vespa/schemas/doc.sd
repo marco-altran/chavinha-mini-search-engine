@@ -251,7 +251,7 @@ schema doc {
                 if (attribute(doc_type) == "full_doc",
                     # For full docs: BM25 only (normalized to 0-1 range)
                     # Divisor of 80 brings BM25 scores down to match semantic score range
-                    1.0 / (1.0 + exp(-1 * (bm25(title) + 0.8*bm25(content) + 0.5*bm25(description)) / 100.0)),
+                    1.0 / (1.0 + exp(-1 * (bm25(title) + 0.8*bm25(content) + 0.5*bm25(description)) / 200.0)),
                     # For chunks: Semantic only
                     closeness(field, chunk_embedding))
             }
