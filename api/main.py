@@ -368,8 +368,7 @@ async def search_vespa(query: str, search_type: str = "hybrid", limit: int = 10,
             "yql": f"select * from sources * where userQuery() limit {limit}",
             "query": query,
             "ranking": f"hybrid{ranking_suffix}",
-            "hits": limit,
-            "summary": "dynamic_snippet",
+            "hits": limit,  # Get more results to ensure both types are represented
             "presentation.timing": "true"
         }
     else:  # bm25
@@ -513,9 +512,13 @@ def format_search_results(vespa_response: Dict, query: str, search_type: str, pe
             snippet=clean_snippet(snippet),
             domain=fields.get("domain", ""),
             relevance=hit.get("relevance", 0.0),
-            doc_type=fields.get("parent_doc_type", fields.get("doc_type", "general"))
+            doc_type=fields.get("doc_type", "general")
         )
         results.append(result)
+        
+        # Stop when we have enough unique documents (for hybrid search with increased limit)
+        if len(results) >= 10:  # Standard limit for final results
+            break
     
     return SearchResponse(
         query=query,

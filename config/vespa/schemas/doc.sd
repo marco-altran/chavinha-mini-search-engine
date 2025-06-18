@@ -133,6 +133,7 @@ schema doc {
         summary chunk_index { source: chunk_index }
         summary doc_type { source: doc_type }
         summary crawled_at { source: crawled_at }
+        summary description { source: description }
     }
     
     # Ranking profiles
@@ -167,10 +168,11 @@ schema doc {
         first-phase {
             expression {
                 if (attribute(doc_type) == "full_doc",
-                    # For full docs: BM25 on title/content/description + semantic
-                    0.5 * (1.0 / (1.0 + exp(-1 * (bm25(title) + 0.8*bm25(content) + 0.5*bm25(description)) / 5.0))) + 0.5 * closeness(field, content_embedding),
-                    # For chunks: BM25 on title/chunk_content + semantic  
-                    0.5 * (1.0 / (1.0 + exp(-1 * (bm25(title) + bm25(chunk_content)) / 5.0))) + 0.5 * closeness(field, chunk_embedding))
+                    # For full docs: BM25 only (normalized to 0-1 range)
+                    # Divisor of 80 brings BM25 scores down to match semantic score range
+                    1.0 / (1.0 + exp(-1 * (bm25(title) + 0.8*bm25(content) + 0.5*bm25(description)) / 200.0)),
+                    # For chunks: Semantic only
+                    closeness(field, chunk_embedding))
             }
         }
     }
@@ -198,9 +200,12 @@ schema doc {
         
         first-phase {
             expression {
-                # Normalize BM25 using sigmoid: 1/(1+exp(-x/5))
-                # Balanced weighting: 50% BM25 + 50% semantic
-                0.5 * (1.0 / (1.0 + exp(-1 * (bm25(title) + 0.8*bm25(content) + 0.5*bm25(description)) / 5.0))) + 0.5 * closeness(field, content_embedding)
+                if (attribute(doc_type) == "full_doc",
+                    # For full docs: BM25 only (normalized to 0-1 range)
+                    # Divisor of 80 brings BM25 scores down to match semantic score range
+                    1.0 / (1.0 + exp(-1 * (bm25(title) + 0.8*bm25(content) + 0.5*bm25(description)) / 200.0)),
+                    # For chunks: Semantic only
+                    closeness(field, chunk_embedding))
             }
         }
         
@@ -244,10 +249,11 @@ schema doc {
         first-phase {
             expression {
                 if (attribute(doc_type) == "full_doc",
-                    # For full docs: BM25 on title/content/description + semantic
-                    0.5 * (1.0 / (1.0 + exp(-1 * (bm25(title) + 0.8*bm25(content) + 0.5*bm25(description)) / 5.0))) + 0.5 * closeness(field, content_embedding),
-                    # For chunks: BM25 on title/chunk_content + semantic
-                    0.5 * (1.0 / (1.0 + exp(-1 * (bm25(title) + bm25(chunk_content)) / 5.0))) + 0.5 * closeness(field, chunk_embedding))
+                    # For full docs: BM25 only (normalized to 0-1 range)
+                    # Divisor of 80 brings BM25 scores down to match semantic score range
+                    1.0 / (1.0 + exp(-1 * (bm25(title) + 0.8*bm25(content) + 0.5*bm25(description)) / 100.0)),
+                    # For chunks: Semantic only
+                    closeness(field, chunk_embedding))
             }
         }
         
